@@ -1,13 +1,11 @@
-from typing import List
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, Depends
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
-from sqlalchemy import text
 from sqlalchemy.orm import Session
 from schemas import AssignPermissionToRoleSchema, GeneralResponseSchema
 from models import Permission, Role
 from db import get_db
+from services.auth import is_admin_user
 
 router = APIRouter()
 
@@ -30,7 +28,7 @@ def assign_permissions(
     role_id: str,
     payload: AssignPermissionToRoleSchema,
     db: Session = Depends(get_db),
-    # _: bool = Depends(is_admin_user),  
+    _: bool = Depends(is_admin_user),  
 ):
     """Assign permissions to a role."""
     # Find the role

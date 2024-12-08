@@ -1,17 +1,15 @@
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.encoders import jsonable_encoder
-from pydantic import BaseModel
-from sqlalchemy import text
 from sqlalchemy.orm import Session
 from schemas import (
     CreateUserRequest,
     GeneralResponseSchema,
     UpdateUserSchema,
     UserSchema,
-    RoleSchema,
 )
 from models import User, Role
 from db import get_db
+from services.helpers import generate_api_key
 
 router = APIRouter()
 
@@ -28,7 +26,7 @@ def create_user(user: CreateUserRequest, db: Session = Depends(get_db)):
     if not role:
         raise Exception("Role not found")
 
-    db_user = User(username=user.username, role_id=role.id)
+    db_user = User(username=user.username, role_id=role.id, api_key=generate_api_key())
 
     db.add(db_user)
     db.commit()
@@ -39,7 +37,7 @@ def create_user(user: CreateUserRequest, db: Session = Depends(get_db)):
     return GeneralResponseSchema(
         success=True,
         message="User created successfully",
-        data={"id": db_user.id, "name": db_user.username, "role": db_user.role.name},
+        data={"id": db_user.id, "name": db_user.username, "role": db_user.role.name, "api_key": db_user.api_key},
     )
 
 
