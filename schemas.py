@@ -25,6 +25,7 @@ class UserSchema(BaseModel):
     id: int
     username: str
     role: RoleEnum
+    api_key: str
 
     class Config:
         from_attributes = True
