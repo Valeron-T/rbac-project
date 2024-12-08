@@ -1,15 +1,7 @@
-from sqlalchemy import (
-    Column,
-    Integer,
-    String,
-    DateTime,
-    ForeignKey,
-    Table,
-    create_engine,
-    Enum as SQLAlchemyEnum,
-    func,
-)
-from sqlalchemy.orm import DeclarativeBase, relationship
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Table, Enum as SQLAlchemyEnum, create_engine
+from sqlalchemy.orm import relationship, DeclarativeBase
+from sqlalchemy.sql import func
+from sqlalchemy.ext.declarative import declarative_base
 from dotenv import load_dotenv
 import os
 from enum import Enum
@@ -17,9 +9,6 @@ from enum import Enum
 
 class Base(DeclarativeBase):
     id = Column(Integer, primary_key=True, autoincrement=True)  # Use Integer for ID
-    created_at = Column(DateTime, default=func.now())
-    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
-
     def __repr__(self):
         return f"<{self.__class__.__name__}(id={self.id})>"
 
@@ -43,7 +32,7 @@ role_permission = Table(
 class User(Base):
     __tablename__ = "users"
     username = Column(String(100), unique=True, nullable=False)
-    role_id = Column(Integer, ForeignKey("roles.id"))  # Use Integer
+    role_id = Column(Integer, ForeignKey("roles.id"))
     role = relationship("Role")
 
 
