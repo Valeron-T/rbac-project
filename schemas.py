@@ -40,12 +40,14 @@ class UpdateUserSchema(BaseModel):
     role: RoleEnum = RoleEnum.STAFF
 
 
+class AssignPermissionToRoleSchema(BaseModel):
+    permission_ids: List[str]
+
+
 class GeneralResponseSchema(BaseModel):
     success: bool
     message: str
-    data: Optional[Any] = (
-        None  # Data can be any type, including lists, dictionaries, etc.
-    )
+    data: Optional[Any] = None
 
     class Config:
         from_attributes = True
