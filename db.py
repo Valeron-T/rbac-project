@@ -1,10 +1,11 @@
 import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
+from sqlalchemy.dialects.mysql import insert
 from sqlalchemy.orm import sessionmaker
 import logging
 
-from models import Base
+from models import Base, Role
 
 load_dotenv()
 
@@ -24,6 +25,22 @@ engine = create_engine(
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 # Create tables in the database (only if they don't exist)
 Base.metadata.create_all(bind=engine)
+
+# Add predefined roles
+roles = [
+    {"id": "1", "name": "Staff"},
+    {"id": "2", "name": "Supervisor"},
+    {"id": "3", "name": "Admin"},
+]
+
+# Upsert statement
+stmt = insert(Role).values(roles)
+stmt = stmt.on_duplicate_key_update(id=stmt.inserted.id)
+
+# Execute the statement
+with engine.connect() as connection:
+    connection.execute(stmt)
+    connection.commit()
 
 
 def get_db():

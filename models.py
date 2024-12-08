@@ -1,7 +1,5 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Table, Enum as SQLAlchemyEnum, create_engine
+from sqlalchemy import Column, Integer, String, ForeignKey, Table, Enum as SQLAlchemyEnum, create_engine
 from sqlalchemy.orm import relationship, DeclarativeBase
-from sqlalchemy.sql import func
-from sqlalchemy.ext.declarative import declarative_base
 from dotenv import load_dotenv
 import os
 from enum import Enum
@@ -33,6 +31,7 @@ class User(Base):
     __tablename__ = "users"
     username = Column(String(100), unique=True, nullable=False)
     role_id = Column(Integer, ForeignKey("roles.id"))
+    api_key = Column(String(32), unique=True, nullable=False) 
     role = relationship("Role")
 
 
