@@ -2,7 +2,7 @@ from datetime import datetime
 import secrets
 import string
 from typing import List, Optional
-from fastapi import Depends, HTTPException, Header, Request
+from fastapi import Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from db import get_db
 from models import AccessLog, Role, User
