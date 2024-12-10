@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from schemas import AssignPermissionToRoleSchema, GeneralResponseSchema, ResponseSchema
 from models import Permission, Role
 from db import get_db
-from services.auth import is_admin_user
+from services.helpers import allow_access
 
 router = APIRouter()
 
@@ -46,12 +46,11 @@ def list_permissions_for_role(role_id: str, db: Session = Depends(get_db)):
     )
 
 
-@router.post("/{role_id}/permissions")
+@router.post("/{role_id}/permissions", dependencies=[Depends(allow_access())])
 def assign_permissions(
     role_id: str,
     payload: AssignPermissionToRoleSchema,
     db: Session = Depends(get_db),
-    _: bool = Depends(is_admin_user),  
 ):
     """Assign permissions to a role."""
     # Find the role
