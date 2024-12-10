@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from schemas import (
     CreateUserRequest,
     GeneralResponseSchema,
+    ResponseSchema,
     UpdateUserSchema,
     UserSchema,
 )
@@ -19,12 +20,18 @@ def create_user(user: CreateUserRequest, db: Session = Depends(get_db)):
     """Create a new user."""
     existing_user = db.query(User).filter(User.username == user.username).first()
     if existing_user:
-        raise HTTPException(status_code=400, detail="User already exists")
+        raise HTTPException(status_code=400, detail=ResponseSchema(
+            success=False,
+            message="User already exists"
+        ))
 
     role = db.query(Role).filter(Role.name == user.role).first()
 
     if not role:
-        raise Exception("Role not found")
+        raise HTTPException(status_code=400, detail=ResponseSchema(
+            success=False,
+            message="Invalid Role"
+        ))
 
     db_user = User(username=user.username, role_id=role.id, api_key=generate_api_key())
 
@@ -89,11 +96,17 @@ def assign_role(user_id: int, payload: UpdateUserSchema, db: Session = Depends(g
 
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=400, detail=ResponseSchema(
+            success=False,
+            message="User not found"
+        ))
 
     role_obj = db.query(Role).filter(Role.name == payload.role).first()
     if not role_obj:
-        raise HTTPException(status_code=404, detail="Role not found")
+        raise HTTPException(status_code=400, detail=ResponseSchema(
+            success=False,
+            message="Role not found"
+        ))
 
     user.role_id = role_obj.id
     db.commit()
