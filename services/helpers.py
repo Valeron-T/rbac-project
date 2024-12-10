@@ -1,14 +1,15 @@
 from datetime import datetime
+import json
+from db import get_db
+from fastapi import Depends, HTTPException, Request
+from fastapi.security import APIKeyHeader
+from models import AccessLog, Role, User
+from schemas import ResponseSchema
+from sqlalchemy.orm import Session
+from typing import List, Optional
+from services.redis import redis
 import secrets
 import string
-from typing import List, Optional
-from fastapi import Depends, HTTPException, Request
-from sqlalchemy.orm import Session
-from db import get_db
-from models import AccessLog, Role, User
-from fastapi.security import APIKeyHeader
-
-from schemas import ResponseSchema
 
 api_key_header = APIKeyHeader(name="Authorization")
 
@@ -23,7 +24,7 @@ def generate_api_key(length: int = 32) -> str:
 
 
 def allow_access(allowed_roles: Optional[List[str]] = []):
-    def access_dependency(
+    async def access_dependency(
         request: Request,
         api_key: str = Depends(api_key_header),  # Extract API key from headers
         db: Session = Depends(get_db),
@@ -36,7 +37,7 @@ def allow_access(allowed_roles: Optional[List[str]] = []):
         # Validate API key
         user = db.query(User).filter_by(api_key=api_key).first()
         if not user:
-            log_access(db, None, endpoint, method, success=False, message="Invalid API key")
+            await log_access(db, None, endpoint, method, success=False, message="Invalid API key")
             raise HTTPException(
                 status_code=403,
                 detail=ResponseSchema(
@@ -48,11 +49,11 @@ def allow_access(allowed_roles: Optional[List[str]] = []):
         role: Role = user.role
 
         if role.name == "Admin" or "*" in allowed_roles:
-            log_access(db, user.id, endpoint, method, success=True, message="")
+            await log_access(db, user.id, endpoint, method, success=True, message="")
             return user
 
         if role.name not in allowed_roles:
-            log_access(db, user.id, endpoint, method, success=False, message="Insufficient privileges")
+            await log_access(db, user.id, endpoint, method, success=False, message="Insufficient privileges")
             raise HTTPException(
                 status_code=403,
                 detail=ResponseSchema(
@@ -61,13 +62,13 @@ def allow_access(allowed_roles: Optional[List[str]] = []):
                 ).model_dump(),
             )
 
-        log_access(db, user.id, endpoint, method, success=True, message="")
+        await log_access(db, user.id, endpoint, method, success=True, message="")
         return user
 
     return access_dependency
 
 
-def log_access(
+async def log_access(
     db: Session,
     user_id: Optional[str],
     endpoint: str,
@@ -78,13 +79,12 @@ def log_access(
     """
     Log access attempts to the database.
     """
-    log_entry = AccessLog(
-        user_id=user_id,
-        endpoint=endpoint,
-        action=action,
-        success=success,
-        message=message,
-        timestamp=datetime.now(),
-    )
-    db.add(log_entry)
-    db.commit()
+    log_entry = json.dumps({
+        "user_id": user_id,
+        "endpoint": endpoint,
+        "action": action,
+        "success": success,
+        "message": message,
+        "timestamp": datetime.now().isoformat(),
+    })
+    await redis.rpush("access_logs", log_entry)
