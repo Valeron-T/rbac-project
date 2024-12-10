@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import Depends, FastAPI
 from dotenv import load_dotenv
 import os
-import redis.asyncio as aioredis
+from services.redis import redis
 from routes.users import router as users_router
 from routes.roles import router as roles_router
 from routes.permissions import router as permissions_router
@@ -16,10 +16,7 @@ SQLALCHEMY_DATABASE_URL = os.getenv("DB_URL")
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
-    global redis
-    service_uri = os.getenv("REDIS_URL")
-    redis = aioredis.from_url(service_uri)
+async def lifespan(app: FastAPI):   
     # Test the connection
     await redis.ping()
     print("Connected to Redis successfully")
