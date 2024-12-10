@@ -1,13 +1,15 @@
+from asyncio import create_task
 from contextlib import asynccontextmanager
-from fastapi import Depends, FastAPI
 from dotenv import load_dotenv
-import os
-from services.redis import redis
-from routes.users import router as users_router
-from routes.roles import router as roles_router
+from fastapi import Depends, FastAPI
 from routes.permissions import router as permissions_router
+from routes.roles import router as roles_router
+from routes.users import router as users_router
 from schemas import ResponseSchema
 from services.helpers import allow_access
+from services.log import move_logs_to_mysql
+from services.redis import redis
+import os
 
 load_dotenv()
 
@@ -19,8 +21,10 @@ SQLALCHEMY_DATABASE_URL = os.getenv("DB_URL")
 async def lifespan(app: FastAPI):   
     # Test the connection
     await redis.ping()
+    task = create_task(move_logs_to_mysql())
     print("Connected to Redis successfully")
     yield
+    task.cancel()
     await redis.close()
 
 
