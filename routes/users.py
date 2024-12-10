@@ -117,7 +117,7 @@ def assign_role(user_id: int, payload: UpdateUserSchema, db: Session = Depends(g
         data={
             "result": [
                 jsonable_encoder(
-                    UserSchema(id=user.id, username=user.username, role=user.role.name)
+                    UserSchema(id=user.id, username=user.username, role=user.role.name, api_key=user.api_key)
                 )
             ]
         },
