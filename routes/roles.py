@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
-from schemas import AssignPermissionToRoleSchema, GeneralResponseSchema
+from schemas import AssignPermissionToRoleSchema, GeneralResponseSchema, ResponseSchema
 from models import Permission, Role
 from db import get_db
 from services.auth import is_admin_user
@@ -31,7 +31,7 @@ def list_permissions_for_role(role_id: str, db: Session = Depends(get_db)):
     if not role:
         return JSONResponse(
             status_code=404,
-            content=GeneralResponseSchema(
+            content=ResponseSchema(
                 success=False,
                 message="Role not found",
             ).model_dump(),
@@ -59,7 +59,7 @@ def assign_permissions(
     if not role:
         return JSONResponse(
             status_code=404,
-            content=GeneralResponseSchema(
+            content=ResponseSchema(
                 success=False,
                 message="Role not found",
             ).model_dump(),
@@ -72,7 +72,7 @@ def assign_permissions(
     if not permissions:
         return JSONResponse(
             status_code=404,
-            content=GeneralResponseSchema(
+            content=ResponseSchema(
                 success=False,
                 message="Some permissions not found",
             ).model_dump(),
@@ -85,7 +85,7 @@ def assign_permissions(
     ]
 
     if not new_permissions:
-        return GeneralResponseSchema(
+        return ResponseSchema(
             success=False,
             message="All permissions already exist for the role. No new permissions were added.",
         )
@@ -94,7 +94,7 @@ def assign_permissions(
     role.permissions.extend(new_permissions)
     db.commit()
 
-    return GeneralResponseSchema(
+    return ResponseSchema(
         success=True,
         message=f"Added {len(new_permissions)} new permissions to role {role.name}.",
     )
