@@ -1,11 +1,11 @@
 from fastapi import APIRouter, HTTPException, Depends
-from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 from schemas import (
     CreateUserRequest,
     GeneralResponseSchema,
     ResponseSchema,
     UpdateUserSchema,
+    UserResponseSchema,
     UserSchema,
 )
 from models import User, Role
@@ -20,18 +20,20 @@ def create_user(user: CreateUserRequest, db: Session = Depends(get_db)):
     """Create a new user."""
     existing_user = db.query(User).filter(User.username == user.username).first()
     if existing_user:
-        raise HTTPException(status_code=400, detail=ResponseSchema(
-            success=False,
-            message="User already exists"
-        ).model_dump())
+        raise HTTPException(
+            status_code=400,
+            detail=ResponseSchema(
+                success=False, message="User already exists"
+            ).model_dump(),
+        )
 
     role = db.query(Role).filter(Role.name == user.role).first()
 
     if not role:
-        raise HTTPException(status_code=400, detail=ResponseSchema(
-            success=False,
-            message="Invalid Role"
-        ).model_dump())
+        raise HTTPException(
+            status_code=400,
+            detail=ResponseSchema(success=False, message="Invalid Role").model_dump(),
+        )
 
     db_user = User(username=user.username, role_id=role.id, api_key=generate_api_key())
 
@@ -44,7 +46,12 @@ def create_user(user: CreateUserRequest, db: Session = Depends(get_db)):
     return GeneralResponseSchema(
         success=True,
         message="User created successfully",
-        data={"id": db_user.id, "name": db_user.username, "role": db_user.role.name, "api_key": db_user.api_key},
+        data=UserSchema(
+            id=db_user.id,
+            username=db_user.username,
+            role=db_user.role.name,
+            api_key=db_user.api_key,
+        ).model_dump(),
     )
 
 
@@ -60,9 +67,11 @@ def get_user_list(db: Session = Depends(get_db)):
         message="Data fetched successfully",
         data={
             "result": [
-                jsonable_encoder(
-                    UserSchema(id=user.id, username=user.username, role=user.role.name)
-                )
+                UserResponseSchema(
+                    id=user.id,
+                    username=user.username,
+                    role=user.role.name,
+                ).model_dump()
                 for user in users
             ]
         },
@@ -81,9 +90,11 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
         message="Data fetched successfully",
         data={
             "result": [
-                jsonable_encoder(
-                    UserSchema(id=user.id, username=user.username, role=user.role.name)
-                )
+                UserResponseSchema(
+                    id=user.id,
+                    username=user.username,
+                    role=user.role.name,
+                ).model_dump()
                 for user in users
             ]
         },
@@ -96,17 +107,17 @@ def assign_role(user_id: int, payload: UpdateUserSchema, db: Session = Depends(g
 
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        raise HTTPException(status_code=400, detail=ResponseSchema(
-            success=False,
-            message="User not found"
-        ).model_dump())
+        raise HTTPException(
+            status_code=400,
+            detail=ResponseSchema(success=False, message="User not found").model_dump(),
+        )
 
     role_obj = db.query(Role).filter(Role.name == payload.role).first()
     if not role_obj:
-        raise HTTPException(status_code=400, detail=ResponseSchema(
-            success=False,
-            message="Role not found"
-        ).model_dump())
+        raise HTTPException(
+            status_code=400,
+            detail=ResponseSchema(success=False, message="Role not found").model_dump(),
+        )
 
     user.role_id = role_obj.id
     db.commit()
@@ -116,9 +127,11 @@ def assign_role(user_id: int, payload: UpdateUserSchema, db: Session = Depends(g
         message="User role updated successfully",
         data={
             "result": [
-                jsonable_encoder(
-                    UserSchema(id=user.id, username=user.username, role=user.role.name)
-                )
+                UserResponseSchema(
+                    id=user.id,
+                    username=user.username,
+                    role=user.role.name,
+                ).model_dump()
             ]
         },
     )

@@ -1,7 +1,9 @@
 from asyncio import create_task
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from routes.permissions import router as permissions_router
 from routes.roles import router as roles_router
 from routes.users import router as users_router
@@ -19,7 +21,7 @@ SQLALCHEMY_DATABASE_URL = os.getenv("DB_URL")
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):   
+async def lifespan(app: FastAPI):
     # Test the connection
     await redis.ping()
     task = create_task(move_logs_to_mysql())
