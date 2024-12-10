@@ -1,10 +1,12 @@
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from dotenv import load_dotenv
 import os
 
 from routes.users import router as users_router
 from routes.roles import router as roles_router
 from routes.permissions import router as permissions_router
+from schemas import ResponseSchema
+from services.helpers import allow_access
 
 load_dotenv()
 
@@ -19,4 +21,28 @@ app.include_router(permissions_router, prefix="/permissions", tags=["Permissions
 
 @app.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return ResponseSchema(success=True, message="Accessed open endpoint")
+
+
+@app.get("/billing", dependencies=[Depends(allow_access())])
+def billing():
+    return ResponseSchema(
+        success=True,
+        message="Accessed the billing API which is only accessible by Admins",
+    )
+
+
+@app.get("/metrics", dependencies=[Depends(allow_access(["Supervisor"]))])
+def metrics():
+    return ResponseSchema(
+        success=True,
+        message="Accessed the metrics API which is only accessible by Supervisors and Admins",
+    )
+
+
+@app.get("/all", dependencies=[Depends(allow_access(["*"]))])
+def all():
+    return ResponseSchema(
+        success=True,
+        message="Accessed the all API which is accessible by all valid users",
+    )
