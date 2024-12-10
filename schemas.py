@@ -30,6 +30,15 @@ class UserSchema(BaseModel):
 
     class Config:
         from_attributes = True
+        
+
+class UserResponseSchema(BaseModel):
+    id: int
+    username: str
+    role: RoleEnum
+
+    class Config:
+        from_attributes = True
 
 
 # Request schema for creating a user
