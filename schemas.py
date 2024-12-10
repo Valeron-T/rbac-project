@@ -45,9 +45,12 @@ class AssignPermissionToRoleSchema(BaseModel):
     permission_ids: List[str]
 
 
-class GeneralResponseSchema(BaseModel):
+class ResponseSchema(BaseModel):
     success: bool
     message: str
+
+
+class GeneralResponseSchema(ResponseSchema):
     data: Optional[Any] = None
 
     class Config:
