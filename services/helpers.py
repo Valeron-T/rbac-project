@@ -3,7 +3,7 @@ import json
 from db import get_db
 from fastapi import Depends, HTTPException, Request
 from fastapi.security import APIKeyHeader
-from models import AccessLog, Role, User
+from models import Role, User
 from schemas import ResponseSchema
 from sqlalchemy.orm import Session
 from typing import List, Optional

@@ -61,6 +61,16 @@ class AccessLog(Base):
     message = Column(String(255), nullable=True)  # Any additional log message
     timestamp = Column(DateTime, default=datetime.now(), nullable=False) 
     
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "endpoint": self.endpoint,
+            "action": self.action,
+            "success": self.success,
+            "message": self.message,
+            "timestamp": self.timestamp,
+        }
+    
 
 if __name__ == "__main__":
     load_dotenv()

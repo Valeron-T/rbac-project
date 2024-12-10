@@ -5,6 +5,7 @@ from fastapi import Depends, FastAPI
 from routes.permissions import router as permissions_router
 from routes.roles import router as roles_router
 from routes.users import router as users_router
+from routes.logging import router as logs_router
 from schemas import ResponseSchema
 from services.helpers import allow_access
 from services.log import move_logs_to_mysql
@@ -32,6 +33,7 @@ app = FastAPI(lifespan=lifespan)
 app.include_router(users_router, prefix="/users", tags=["Users"])
 app.include_router(roles_router, prefix="/roles", tags=["Roles"])
 app.include_router(permissions_router, prefix="/permissions", tags=["Permissions"])
+app.include_router(logs_router, prefix="/logs", tags=["Logs"])
 
 
 @app.get("/")
@@ -41,6 +43,7 @@ async def root():
 
 @app.get("/billing", dependencies=[Depends(allow_access())])
 def billing():
+    """API only accessible by admins"""
     return ResponseSchema(
         success=True,
         message="Accessed the billing API which is only accessible by Admins",
@@ -49,6 +52,7 @@ def billing():
 
 @app.get("/metrics", dependencies=[Depends(allow_access(["Supervisor"]))])
 def metrics():
+    """API only accessible by supervisors and admins"""
     return ResponseSchema(
         success=True,
         message="Accessed the metrics API which is only accessible by Supervisors and Admins",
@@ -57,6 +61,7 @@ def metrics():
 
 @app.get("/all", dependencies=[Depends(allow_access(["*"]))])
 def all():
+    """API accessible by valid users"""
     return ResponseSchema(
         success=True,
         message="Accessed the all API which is accessible by all valid users",

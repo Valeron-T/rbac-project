@@ -69,3 +69,8 @@ class AccessLogSchema(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class LogTimeRangeRequest(BaseModel):
+    start_time: datetime
+    end_time: datetime
