@@ -1,3 +1,4 @@
+from datetime import datetime
 from pydantic import BaseModel
 from enum import Enum
 from typing import Any, List, Optional
@@ -55,3 +56,21 @@ class GeneralResponseSchema(ResponseSchema):
 
     class Config:
         from_attributes = True
+
+
+class AccessLogSchema(BaseModel):
+    id: str
+    user_id: Optional[str]
+    endpoint: str
+    action: str
+    success: bool
+    message: Optional[str]
+    timestamp: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class LogTimeRangeRequest(BaseModel):
+    start_time: datetime
+    end_time: datetime

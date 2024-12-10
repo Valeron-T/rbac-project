@@ -47,7 +47,6 @@ def get_db():
     """Dependency that yields a database session."""
     db = SessionLocal()
     try:
-        print("Creating conn")
         yield db
     finally:
         db.close()
