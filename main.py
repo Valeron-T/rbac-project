@@ -38,6 +38,30 @@ app.include_router(permissions_router, prefix="/permissions", tags=["Permissions
 app.include_router(logs_router, prefix="/logs", tags=["Logs"])
 
 
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """
+    Custom handler for request validation errors.
+    """
+    errors = []
+    for error in exc.errors():
+        loc = " -> ".join(map(str, error.get("loc", [])))
+        msg = error.get("msg", "Validation error")
+        ctx = error.get("ctx", {})
+        if ctx and "expected" in ctx:
+            msg += f" (Expected: {ctx['expected']})"
+        errors.append({"field": loc, "message": msg})
+
+    return JSONResponse(
+        status_code=422,
+        content={
+            "success": False,
+            "message": "Validation error",
+            "errors": errors,
+        },
+    )
+
+
 @app.get("/")
 async def root():
     return ResponseSchema(success=True, message="Accessed open endpoint")
