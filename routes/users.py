@@ -15,7 +15,7 @@ from services.helpers import generate_api_key
 router = APIRouter()
 
 
-@router.post("/", status_code=201, response_model=GeneralResponseSchema)
+@router.post("/", status_code=201)
 def create_user(user: CreateUserRequest, db: Session = Depends(get_db)):
     """Create a new user."""
     existing_user = db.query(User).filter(User.username == user.username).first()
@@ -23,7 +23,7 @@ def create_user(user: CreateUserRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail=ResponseSchema(
             success=False,
             message="User already exists"
-        ))
+        ).model_dump())
 
     role = db.query(Role).filter(Role.name == user.role).first()
 
@@ -31,7 +31,7 @@ def create_user(user: CreateUserRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail=ResponseSchema(
             success=False,
             message="Invalid Role"
-        ))
+        ).model_dump())
 
     db_user = User(username=user.username, role_id=role.id, api_key=generate_api_key())
 
@@ -99,14 +99,14 @@ def assign_role(user_id: int, payload: UpdateUserSchema, db: Session = Depends(g
         raise HTTPException(status_code=400, detail=ResponseSchema(
             success=False,
             message="User not found"
-        ))
+        ).model_dump())
 
     role_obj = db.query(Role).filter(Role.name == payload.role).first()
     if not role_obj:
         raise HTTPException(status_code=400, detail=ResponseSchema(
             success=False,
             message="Role not found"
-        ))
+        ).model_dump())
 
     user.role_id = role_obj.id
     db.commit()
