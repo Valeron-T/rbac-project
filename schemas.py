@@ -20,6 +20,9 @@ class RoleSchema(BaseModel):
     id: int
     name: RoleEnum
     permissions: List[PermissionSchema]
+    
+    class Config:
+        from_attributes = True
 
 
 class UserSchema(BaseModel):
