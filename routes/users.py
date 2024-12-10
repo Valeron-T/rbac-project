@@ -82,21 +82,24 @@ def get_user_list(db: Session = Depends(get_db)):
 def get_user(user_id: int, db: Session = Depends(get_db)):
     """Retrieve a user."""
     # Query the users and join the Role table to get the role name
-    users = db.query(User).filter(User.id == user_id).join(Role).all()
+    user = db.query(User).filter(User.id == user_id).join(Role).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail=ResponseSchema(success=False, message="User not found").model_dump(),
+        )
 
     # Return a list of user data with role name instead of role ID
     return GeneralResponseSchema(
         success=True,
         message="Data fetched successfully",
         data={
-            "result": [
-                UserResponseSchema(
-                    id=user.id,
-                    username=user.username,
-                    role=user.role.name,
-                ).model_dump()
-                for user in users
-            ]
+            "result": UserResponseSchema(
+                id=user.id,
+                username=user.username,
+                role=user.role.name,
+            ).model_dump()
         },
     )
 
