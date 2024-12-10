@@ -14,13 +14,3 @@ def get_user_by_api_key(api_key: str = Depends(api_key_header), db: Session = De
     if not user:
         raise HTTPException(status_code=403, detail="Invalid API Key")
     return user
-
-
-def is_admin_user(current_user: User = Depends(get_user_by_api_key)):
-    """Check if user is admin"""
-    if current_user.role.name != "Admin":
-        raise HTTPException(
-            status_code=403,
-            detail="Insufficient privileges"
-        )
-    return True
