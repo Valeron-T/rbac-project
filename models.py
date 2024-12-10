@@ -1,4 +1,7 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Table, Enum as SQLAlchemyEnum, create_engine
+from datetime import datetime
+from typing import Text
+import uuid
+from sqlalchemy import Boolean, Column, DateTime, Integer, String, ForeignKey, Table, Enum as SQLAlchemyEnum, create_engine
 from sqlalchemy.orm import relationship, DeclarativeBase
 from dotenv import load_dotenv
 import os
@@ -46,6 +49,18 @@ class Permission(Base):
     name = Column(String(100), unique=True, nullable=False)
     roles = relationship("Role", secondary=role_permission, back_populates="permissions")
 
+
+class AccessLog(Base):
+    __tablename__ = "access_logs"
+    
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))  # Unique log ID
+    user_id = Column(Integer, nullable=True)  # Nullable for anonymous access
+    endpoint = Column(String(255), nullable=False)  # The accessed endpoint
+    action = Column(String(10), nullable=False)  # HTTP method like GET, POST
+    success = Column(Boolean, nullable=False)  # Whether the action succeeded
+    message = Column(String(255), nullable=True)  # Any additional log message
+    timestamp = Column(DateTime, default=datetime.now(), nullable=False) 
+    
 
 if __name__ == "__main__":
     load_dotenv()
