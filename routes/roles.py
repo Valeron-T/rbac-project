@@ -95,5 +95,5 @@ def assign_permissions(
 
     return ResponseSchema(
         success=True,
-        message=f"Added {len(new_permissions)} new permissions to role {str(role.name)}.",
+        message=f"Added {len(new_permissions)} new permissions to role {str(role.name.value)}.",
     )

@@ -58,7 +58,7 @@ def allow_access(allowed_roles: Optional[List[str]] = []):
                 status_code=403,
                 detail=ResponseSchema(
                     success=False,
-                    message=f"User with role '{role.name}' does NOT have access to this endpoint",
+                    message=f"User with role '{role.name.value}' does NOT have access to this endpoint",
                 ).model_dump(),
             )
 
